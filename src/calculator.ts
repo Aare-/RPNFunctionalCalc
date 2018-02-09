@@ -54,10 +54,7 @@ function defineOperation(
     let token = tokenAndResult[0];
     let result = tokenAndResult[1];
 
-    if (result.success) {
-      return tokenAndResult;
-    }
-    if (opSymbol != null && token.op != opSymbol) {
+    if (result.success || token.op != opSymbol) {
       return tokenAndResult;
     }
     if (result.stack.length < numberOfArguments) {

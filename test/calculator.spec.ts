@@ -48,5 +48,21 @@ context('#calculate', () => {
         calculate('1 1 1 +');
       }).to.throw('Insufficient number of operations');
     });
+
+    it('should properly add numbers', () => {
+      expect(calculate('1 1 +')).to.eq(2);
+    });
+
+    it('should be commutative', () => {
+      expect(calculate('2 1 +')).to.eq(calculate('1 2 +'));
+    });
+
+    it('should work on result of previous additions', () => {
+      expect(calculate('1 1 3 + +')).to.eq(5);
+    });
+
+    it('should work on big numbers', () => {
+      expect(calculate('9999999999 9999999999 +')).to.eq(19999999998);
+    });
   });
 });
