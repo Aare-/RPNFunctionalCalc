@@ -103,4 +103,44 @@ context('#calculate', () => {
       expect(calculate('10 1 - 2 -')).to.eq(7);
     });
   });
+
+  describe('Multiplication', () => {
+    it('should accept "*" as a valid parameter', () => {
+      calculate('3 3 *');
+    });
+
+    it('should throw when not enough operations given', () => {
+      expect(() => {
+        calculate('1 *');
+      }).to.throw('Insufficient number of arguments');
+    });
+
+    it('should throw when too many arguments given', () => {
+      expect(() => {
+        calculate('1 1 1 *');
+      }).to.throw('Insufficient number of operations');
+    });
+
+    it('should properly multiplicate numbers', () => {
+      expect(calculate('2 3 *')).to.eq(6);
+    });
+
+    it('should be commutative', () => {
+      expect(calculate('4 7 *')).to.eq(calculate('7 4 *'));
+    });
+
+    it('should work on result of multiplications', () => {
+      expect(calculate('2 3 4 * *')).to.eq(24);
+    });
+
+    it('should work when called two times', () => {
+      expect(calculate('10 4 * 7 *')).to.eq(280);
+    });
+  });
+
+  describe('Integration', () => {
+    it('should be smarter than average facebook user', () => {
+      expect(calculate('2 2 * 2 +')).to.eq(6);
+    });
+  });
 });

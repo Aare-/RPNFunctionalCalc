@@ -42,6 +42,7 @@ function performOperationOnStack(
   return R.pipe(
     defineOperation('+', 2, addOperation),
     defineOperation('-', 2, subOperation),
+    defineOperation('*', 2, mulOperation),
     invalidOperation()
   )([token, result])[1].stack;
 }
@@ -52,6 +53,10 @@ function addOperation(data: number[]): number {
 
 function subOperation(data: number[]): number {
   return data[0] - data[1];
+}
+
+function mulOperation(data: number[]): number {
+  return data[0] * data[1];
 }
 
 function defineOperation(
