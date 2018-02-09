@@ -43,7 +43,7 @@ context('#calculate', () => {
       }).to.throw('Insufficient number of arguments');
     });
 
-    it('should throw when too many parameters given', () => {
+    it('should throw when too many arguments given', () => {
       expect(() => {
         calculate('1 1 1 +');
       }).to.throw('Insufficient number of operations');
@@ -61,8 +61,46 @@ context('#calculate', () => {
       expect(calculate('1 1 3 + +')).to.eq(5);
     });
 
+    it('should work when called two times', () => {
+      expect(calculate('1 2 + 3 +')).to.eq(6);
+    });
+
     it('should work on big numbers', () => {
       expect(calculate('9999999999 9999999999 +')).to.eq(19999999998);
+    });
+  });
+
+  describe('Substraction', () => {
+    it('should accept "-" as a valid parameter', () => {
+      calculate('1 1 -');
+    });
+
+    it('should throw when not enough operations given', () => {
+      expect(() => {
+        calculate('1 -');
+      }).to.throw('Insufficient number of arguments');
+    });
+
+    it('should throw when too many arguments given', () => {
+      expect(() => {
+        calculate('1 1 1 -');
+      }).to.throw('Insufficient number of operations');
+    });
+
+    it('should properly substract numbers', () => {
+      expect(calculate('10 1 -')).to.eq(9);
+    });
+
+    it('should not be commutative', () => {
+      expect(calculate('2 1 -')).to.not.eq(calculate('1 2 -'));
+    });
+
+    it('should work on result of previous subtractions', () => {
+      expect(calculate('10 5 1 - -')).to.eq(6);
+    });
+
+    it('should work when called two times', () => {
+      expect(calculate('10 1 - 2 -')).to.eq(7);
     });
   });
 });

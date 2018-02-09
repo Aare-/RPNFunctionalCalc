@@ -39,10 +39,19 @@ function performOperationOnStack(
     stack: stack
   };
 
-  return R.pipe(defineOperation('+', 2, addOperation), invalidOperation())([
-    token,
-    result
-  ])[1].stack;
+  return R.pipe(
+    defineOperation('+', 2, addOperation),
+    defineOperation('-', 2, subOperation),
+    invalidOperation()
+  )([token, result])[1].stack;
+}
+
+function addOperation(data: number[]): number {
+  return R.sum(data);
+}
+
+function subOperation(data: number[]): number {
+  return data[0] - data[1];
 }
 
 function defineOperation(
@@ -83,10 +92,6 @@ function invalidOperation(): Operation {
 
     throw new SyntaxError('Invalid operation: ' + token.op);
   };
-}
-
-function addOperation(data: number[]): number {
-  return R.sum(data);
 }
 
 function getResultFromCalculationStack(stack: number[]): number {
