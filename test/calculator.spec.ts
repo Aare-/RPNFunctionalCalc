@@ -30,6 +30,10 @@ context('#calculate', () => {
     it('should ignore excessive spaces', () => {
       expect(calculate('    1     ')).to.eq(1);
     });
+
+    it('should properly parse negative values', () => {
+      expect(calculate('-1')).to.eq(-1);
+    });
   });
 
   describe('Addition', () => {
@@ -67,6 +71,10 @@ context('#calculate', () => {
 
     it('should work on big numbers', () => {
       expect(calculate('9999999999 9999999999 +')).to.eq(19999999998);
+    });
+
+    it('should properly work on negative values', () => {
+      expect(calculate('-2 -3 +')).to.eq(-5);
     });
   });
 

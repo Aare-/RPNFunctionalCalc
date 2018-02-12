@@ -5,14 +5,14 @@ interface ParsedToken {
   num: number;
 }
 
-interface Result {
-  success: boolean;
+interface OpCodeData {
+  parsed: boolean;
+  opCode: string;
   stack: number[];
 }
 
-type OpResult = [ParsedToken, Result];
+type Operation = (data: OpCodeData) => OpCodeData;
 type OpImplementation = (data: number[]) => number;
-type Operation = (tokenAndResult: OpResult) => OpResult;
 
 export function calculate(input: string): number {
   return R.pipe(
@@ -22,100 +22,12 @@ export function calculate(input: string): number {
   )(input);
 }
 
-function parseStack(stack: number[], token: ParsedToken): number[] {
-  if (isNumber(token)) {
-    return stack.concat(token.num);
-  } else {
-    return performOperationOnStack(stack, token);
-  }
-}
-
-function performOperationOnStack(
-  stack: number[],
-  token: ParsedToken
-): number[] {
-  let result: Result = {
-    success: false,
-    stack: stack
-  };
-
-  return R.pipe(
-    defineOperation('+', 2, addOperation),
-    defineOperation('-', 2, subOperation),
-    defineOperation('*', 2, mulOperation),
-    invalidOperation()
-  )([token, result])[1].stack;
-}
-
-function addOperation(data: number[]): number {
-  return R.sum(data);
-}
-
-function subOperation(data: number[]): number {
-  return data[0] - data[1];
-}
-
-function mulOperation(data: number[]): number {
-  return data[0] * data[1];
-}
-
-function defineOperation(
-  opSymbol: String,
-  numberOfArguments: number,
-  opImplementation: OpImplementation
-): Operation {
-  return (tokenAndResult: OpResult): OpResult => {
-    let token = tokenAndResult[0];
-    let result = tokenAndResult[1];
-
-    if (result.success || token.op != opSymbol) {
-      return tokenAndResult;
-    }
-    if (result.stack.length < numberOfArguments) {
-      throw new SyntaxError('Insufficient number of arguments');
-    }
-
-    const slicedStack = R.splitAt<number>(
-      result.stack.length - numberOfArguments,
-      result.stack
-    );
-    const remainingStack = slicedStack[0];
-    const opArguments = slicedStack[1];
-    const operationResult = opImplementation(opArguments);
-    const resultStack = R.concat<number>(remainingStack, [operationResult]);
-
-    return [token, { success: true, stack: resultStack }];
-  };
-}
-
-function invalidOperation(): Operation {
-  return (tokenAndResult: OpResult): OpResult => {
-    let token = tokenAndResult[0];
-    let result = tokenAndResult[1];
-
-    if (result.success) return tokenAndResult;
-
-    throw new SyntaxError('Invalid operation: ' + token.op);
-  };
-}
-
-function getResultFromCalculationStack(stack: number[]): number {
-  if (stack.length != 1) {
-    throw new SyntaxError('Insufficient number of operations');
-  }
-
-  return R.sum(stack);
-}
-
 function prepareInput(input: string): ParsedToken[] {
   return R.map(parseToken, tokenize(input));
 }
 
 function parseToken(token: string): ParsedToken {
-  return {
-    num: Number(token),
-    op: token
-  };
+  return { num: Number(token), op: token };
 }
 
 function tokenize(input: string): string[] {
@@ -125,10 +37,104 @@ function tokenize(input: string): string[] {
     .split(' ');
 }
 
-function isNumber(token: ParsedToken): boolean {
-  return !isOperation(token);
+function parseStack(stack: number[], token: ParsedToken): number[] {
+  if (isNumber(token)) {
+    return stack.concat(token.num);
+  } else {
+    return performOperationOnStack(stack, token.op);
+  }
 }
 
-function isOperation(token: ParsedToken): boolean {
-  return Number.isNaN(token.num);
+function isNumber(token: ParsedToken): boolean {
+  return !Number.isNaN(token.num);
+}
+
+function performOperationOnStack(stack: number[], opCode: string): number[] {
+  return R.pipe(
+    validOperation('+', 2, addImplementation),
+    validOperation('-', 2, subImplementation),
+    validOperation('*', 2, mulImplementation),
+    invalidOperation()
+  )(newOpCodeData(stack, opCode)).stack;
+}
+
+function validOperation(
+  opSymbol: String,
+  numberOfArguments: number,
+  opImplementation: OpImplementation
+): Operation {
+  return (data: OpCodeData): OpCodeData => {
+    if (data.parsed || data.opCode != opSymbol) {
+      return data;
+    }
+    if (data.stack.length < numberOfArguments) {
+      throw new SyntaxError('Insufficient number of arguments');
+    }
+
+    const { opArguments, remainingArguments } = extractArgs(
+      data.stack,
+      numberOfArguments
+    );
+    const operationResult = opImplementation(opArguments);
+
+    return opParsed(data, remainingArguments, operationResult);
+  };
+}
+
+function invalidOperation(): Operation {
+  return (input: OpCodeData): OpCodeData => {
+    if (input.parsed) return input;
+
+    throw new SyntaxError('Invalid operation: ' + input.opCode);
+  };
+}
+
+function newOpCodeData(stack: number[], opCode: string): OpCodeData {
+  return {
+    opCode: opCode,
+    stack: stack,
+    parsed: false
+  };
+}
+
+function extractArgs(stack: number[], numberOfArguments: number) {
+  const slicedStack = R.splitAt<number>(
+    stack.length - numberOfArguments,
+    stack
+  );
+
+  return { opArguments: slicedStack[1], remainingArguments: slicedStack[0] };
+}
+
+function opParsed(
+  data: OpCodeData,
+  remainingArgs: number[],
+  opResult: number
+): OpCodeData {
+  const newStack = appendResult(remainingArgs, opResult);
+  return { parsed: true, opCode: data.opCode, stack: newStack };
+}
+
+function appendResult(stack: number[], result: number) {
+  return stack.concat(result);
+}
+
+function addImplementation(data: number[]): number {
+  return R.sum(data);
+}
+
+function subImplementation(data: number[]): number {
+  return data[0] - data[1];
+}
+
+function mulImplementation(data: number[]): number {
+  return data[0] * data[1];
+}
+
+function getResultFromCalculationStack(stack: number[]): number {
+  if (stack.length != 1) {
+    throw new SyntaxError('Insufficient number of operations');
+  }
+
+  return stack[0];
 }
