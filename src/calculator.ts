@@ -109,7 +109,7 @@ function appendResult(stack: number[], result: number) {
 }
 
 function addImplementation(data: number[]): number {
-  return R.sum(data);
+  return data[0] + data[1];
 }
 
 function subImplementation(data: number[]): number {
