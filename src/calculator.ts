@@ -59,12 +59,12 @@ function performOperationOnStack(stack: number[], opCode: string): number[] {
 }
 
 function validOperation(
-  opSymbol: String,
+  opSymbol: string,
   numberOfArguments: number,
   opImplementation: OpImplementation
 ): Operation {
   return (data: OpCodeData): OpCodeData => {
-    if (data.parsed || data.opCode != opSymbol) {
+    if (data.parsed || data.opCode !== opSymbol) {
       return data;
     }
     if (data.stack.length < numberOfArguments) {
@@ -83,7 +83,9 @@ function validOperation(
 
 function invalidOperation(): Operation {
   return (input: OpCodeData): OpCodeData => {
-    if (input.parsed) return input;
+    if (input.parsed) {
+      return input;
+    }
 
     throw new SyntaxError('Invalid operation: ' + input.opCode);
   };
@@ -91,9 +93,9 @@ function invalidOperation(): Operation {
 
 function newOpCodeData(stack: number[], opCode: string): OpCodeData {
   return {
-    opCode: opCode,
-    stack: stack,
-    parsed: false
+    opCode,
+    parsed: false,
+    stack
   };
 }
 
@@ -132,7 +134,7 @@ function mulImplementation(data: number[]): number {
 }
 
 function getResultFromCalculationStack(stack: number[]): number {
-  if (stack.length != 1) {
+  if (stack.length !== 1) {
     throw new SyntaxError('Insufficient number of operations');
   }
 
