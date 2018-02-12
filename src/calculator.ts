@@ -1,10 +1,5 @@
 import * as R from 'ramda';
 
-interface ParsedToken {
-  op: string;
-  num: number;
-}
-
 interface OpCodeData {
   parsed: boolean;
   opCode: string;
@@ -16,18 +11,10 @@ type OpImplementation = (data: number[]) => number;
 
 export function calculate(input: string): number {
   return R.pipe(
-    prepareInput,
-    R.reduce<ParsedToken, number[]>(parseStack, []),
+    tokenize,
+    R.reduce<string, number[]>(parseStack, []),
     getResultFromCalculationStack
   )(input);
-}
-
-function prepareInput(input: string): ParsedToken[] {
-  return R.map(parseToken, tokenize(input));
-}
-
-function parseToken(token: string): ParsedToken {
-  return { num: Number(token), op: token };
 }
 
 function tokenize(input: string): string[] {
@@ -37,16 +24,16 @@ function tokenize(input: string): string[] {
     .split(' ');
 }
 
-function parseStack(stack: number[], token: ParsedToken): number[] {
+function parseStack(stack: number[], token: string): number[] {
   if (isNumber(token)) {
-    return stack.concat(token.num);
+    return stack.concat(Number(token));
   } else {
-    return performOperationOnStack(stack, token.op);
+    return performOperationOnStack(stack, token);
   }
 }
 
-function isNumber(token: ParsedToken): boolean {
-  return !Number.isNaN(token.num);
+function isNumber(token: string): boolean {
+  return !Number.isNaN(Number(token));
 }
 
 function performOperationOnStack(stack: number[], opCode: string): number[] {
